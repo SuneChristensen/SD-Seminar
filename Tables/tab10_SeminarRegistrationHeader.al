@@ -3,8 +3,13 @@ table 50110 "CSD Seminar Reg. Header"
     // CSD1.00 - 2018-01-01 - D. E. Veloper
     //   Chapter 6 - Lab 1-3 & Lab 1-4
     //     - Created new table
+    //   Chapter 8 - Lab 2-3
+    //     - Added LookupId and DrillDownPageId
+    //   Chapter 9 - Lab 1-1
+    //     - Added Field "No. Printed"
     Caption = 'Seminar Registration Header';
-
+    LookupPageId = "CSD Posted Seminar Reg. List";
+    DrillDownPageId = "CSD Posted Seminar Reg. List";
 
     Fields
     {
@@ -45,11 +50,11 @@ table 50110 "CSD Seminar Reg. Header"
                     SeminarRegLine.Reset();
                     SeminarRegLine.SetRange("Document No.", "No.");
                     SeminarRegLine.SetRange(Registered, true);
-                    if not SeminarRegLine.IsEmpty then
+                    if not SeminarRegLine.IsEmpty() then
                         ERROR(
                       Text002,
                       FieldCaption("Seminar No."),
-                      SeminarRegLine.TableCaption,
+                      SeminarRegLine.TableCaption(),
                       SeminarRegLine.FieldCaption(Registered),
                       true);
 
@@ -75,19 +80,19 @@ table 50110 "CSD Seminar Reg. Header"
         Field(5; "Instructor Resource No."; Code[20])
         {
             Caption = 'Instructor Resource No.';
-            TableRelation = Resource where(Type = const(Person));
+            TableRelation = Resource where (Type = const (Person));
             DataClassification = AccountData;
 
             trigger OnValidate();
             begin
-                CalcFieldS("Instructor Name");
+                CALCFieldS("Instructor Name");
             end;
         }
         Field(6; "Instructor Name"; Text[50])
         {
             Caption = 'Instructor Name';
-            CalcFormula = Lookup (Resource.Name where("No." = Field("Instructor Resource No."),
-                                                      Type = const(Person)));
+            CalcFormula = Lookup (Resource.Name where ("No." = Field ("Instructor Resource No."),
+                                                      Type = const (Person)));
             Editable = false;
             FieldClass = FlowField;
         }
@@ -117,7 +122,7 @@ table 50110 "CSD Seminar Reg. Header"
         Field(11; "Room Resource No."; Code[20])
         {
             Caption = 'Room Resource No.';
-            TableRelation = Resource where(Type = const(Machine));
+            TableRelation = Resource where (Type = const (Machine));
             DataClassification = AccountData;
 
             trigger OnValidate();
@@ -140,10 +145,10 @@ table 50110 "CSD Seminar Reg. Header"
                     "Room County" := SeminarRoom.County;
                     "Room Country/Reg. Code" := SeminarRoom."Country/Region Code";
 
-                    if (CurrFieldNo <> 0) then begin
+                    if (CurrFieldNo <> 0) then
                         if (SeminarRoom."CSD Maximum Participants" <> 0) and
                            (SeminarRoom."CSD Maximum Participants" < "Maximum Participants")
-                        then begin
+                        then
                             if Confirm(Text004, true,
                                "Maximum Participants",
                                SeminarRoom."CSD Maximum Participants",
@@ -152,8 +157,6 @@ table 50110 "CSD Seminar Reg. Header"
                                SeminarRoom."CSD Maximum Participants")
                           then
                                 "Maximum Participants" := SeminarRoom."CSD Maximum Participants";
-                        end;
-                    end;
                 end;
             end;
         }
@@ -181,7 +184,7 @@ table 50110 "CSD Seminar Reg. Header"
 
             trigger OnValidate();
             begin
-                PostCode.ValidatePostCode("Room City", "Room Post Code", "Room County", "Room Country/Reg. Code", (CurrFieldNo <> 0) and GuiAllowed);
+                PostCode.ValidatePostCode("Room City", "Room Post Code", "Room County", "Room Country/Reg. Code", (CurrFieldNo <> 0) and GuiAllowed());
             end;
         }
         Field(16; "Room City"; Text[30])
@@ -191,7 +194,7 @@ table 50110 "CSD Seminar Reg. Header"
 
             trigger OnValidate();
             begin
-                PostCode.ValidateCity("Room City", "Room Post Code", "Room County", "Room Country/Reg. Code", (CurrFieldNo <> 0) and GuiAllowed);
+                PostCode.ValidateCity("Room City", "Room Post Code", "Room County", "Room Country/Reg. Code", (CurrFieldNo <> 0) and GuiAllowed());
             end;
         }
         Field(17; "Room Country/Reg. Code"; Code[10])
@@ -222,13 +225,13 @@ table 50110 "CSD Seminar Reg. Header"
                     if SeminarRegLine.FindSet(false, false) then
                         if Confirm(Text005, false,
                              FieldCaption("Seminar Price"),
-                             SeminarRegLine.TableCaption)
+                             SeminarRegLine.TableCaption())
                         then begin
                             repeat
-                                SeminarRegLine.Validate("Seminar Price", "Seminar Price");
-                                SeminarRegLine.Modify;
-                            until SeminarRegLine.NEXT = 0;
-                            Modify;
+                                SeminarRegLine.VALIDATE("Seminar Price", "Seminar Price");
+                                SeminarRegLine.Modify();
+                            until SeminarRegLine.Next() = 0;
+                            Modify();
                         end;
                 end;
             end;
@@ -248,8 +251,8 @@ table 50110 "CSD Seminar Reg. Header"
         Field(22; Comment; Boolean)
         {
             Caption = 'Comment';
-            CalcFormula = Exist ("CSD Seminar Comment Line" where("Table Name" = const("Seminar Registration"),
-                                                              "No." = Field("No.")));
+            CalcFormula = Exist ("CSD Seminar Comment Line" where ("Table Name" = const ("Seminar Registration"),
+                                                              "No." = Field ("No.")));
             Editable = false;
             FieldClass = FlowField;
         }
@@ -290,9 +293,8 @@ table 50110 "CSD Seminar Reg. Header"
                     SeminarSetup.TestField("Seminar Registration Nos.");
                     SeminarSetup.TestField("Posted Seminar Reg. Nos.");
                     if NoSeriesMgt.LookupSeries(SeminarSetup."Posted Seminar Reg. Nos.", "Posting No. Series")
-                    then begin
-                        Validate("Posting No. Series");
-                    end;
+                    then
+                        VALIDATE("Posting No. Series");
                     Rec := SeminarRegHeader;
                 end;
             end;
@@ -311,6 +313,12 @@ table 50110 "CSD Seminar Reg. Header"
         Field(28; "Posting No."; Code[20])
         {
             Caption = 'Posting No.';
+            DataClassification = AccountData;
+        }
+        field(40; "No. Printed"; Integer)
+        {
+            Caption = 'No. Printed';
+            Editable = false;
             DataClassification = AccountData;
         }
     }
@@ -352,7 +360,7 @@ table 50110 "CSD Seminar Reg. Header"
         if SeminarRegLine.Find('-') then
             ERROR(
             Text001,
-            SeminarRegLine.TableCaption,
+            SeminarRegLine.TableCaption(),
             SeminarRegLine.FieldCaption(Registered),
             true);
         SeminarRegLine.SetRange(Registered);
@@ -360,13 +368,13 @@ table 50110 "CSD Seminar Reg. Header"
 
         SeminarCharge.Reset();
         SeminarCharge.SetRange("Document No.", "No.");
-        if not SeminarCharge.IsEmpty then
-            ERROR(Text006, SeminarCharge.TableCaption);
+        if not SeminarCharge.IsEmpty() then
+            ERROR(Text006, SeminarCharge.TableCaption());
 
         SeminarCommentLine.Reset();
         SeminarCommentLine.SetRange("Table Name", SeminarCommentLine."Table Name"::"Seminar Registration");
         SeminarCommentLine.SetRange("No.", "No.");
-        SeminarCommentLine.deleteALL;
+        SeminarCommentLine.deleteALL();
     end;
 
     trigger OnInsert();
@@ -377,17 +385,18 @@ table 50110 "CSD Seminar Reg. Header"
             NoSeriesMgt.InitSeries(SeminarSetup."Seminar Registration Nos.", xRec."No. Series", 0D, "No.", "No. Series");
         end;
         initrecord();
-
-        // >> Lab 8 1-1 
-        if GetFilter("Seminar No.") <> '' then if GetRangeMin("Seminar No.") = GetRangeMax("Seminar No.") then Validate("Seminar No.", GetRangeMin("Seminar No."));
-        // << Lab 8 1-1
+        // >> Lab 8-1
+        if GetFilter("Seminar No.") <> '' then
+            if GetRangeMin("Seminar No.") = GetRangeMax("Seminar No.") then
+                Validate("Seminar No.", GetRangeMin("Seminar No."));
+        // << Lab 8-1
     end;
 
     local procedure InitRecord();
     begin
         if "Posting Date" = 0D then
-            "Posting Date" := WorkDate;
-        "Document Date" := WorkDate;
+            "Posting Date" := WorkDate();
+        "Document Date" := WorkDate();
         SeminarSetup.Get();
         NoSeriesMgt.SetDefaultSeries("Posting No. Series", SeminarSetup."Posted Seminar Reg. Nos.");
     end;

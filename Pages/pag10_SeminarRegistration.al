@@ -20,7 +20,6 @@ page 50110 "CSD Seminar Registration"
                 {
                     AssistEdit = true;
                     ApplicationArea = All;
-
                     trigger OnAssistEdit();
                     begin
                         if AssistEdit(xRec) then
@@ -76,6 +75,7 @@ page 50110 "CSD Seminar Registration"
             {
                 Caption = 'Lines';
                 SubPageLink = "Document No." = field ("No.");
+                ApplicationArea = All;
             }
             group("Seminar Room")
             {
@@ -191,6 +191,21 @@ page 50110 "CSD Seminar Registration"
                 ShortcutKey = F9;
                 RunObject = codeunit "CSD Seminar-Post (Yes/No)";
                 ApplicationArea = All;
+            }
+            action("&Print")
+            {
+                Caption = '&Print';
+                Image = Print;
+                Promoted = true;
+                PromotedIsBig = true;
+                PromotedCategory = Process;
+                ApplicationArea = All;
+                trigger OnAction();
+                var
+                    SeminarReportSelection: Record "CSD Seminar Report Selections";
+                begin
+                    SeminarReportSelection.PrintReportSelection(SeminarReportSelection.Usage::Registration, Rec);
+                end;
             }
         }
     }
